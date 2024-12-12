@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      body {
+        width: 400px;
+        padding: 20px;
+        font-family: Arial, sans-serif;
+      }
+      .tabs {
+        display: flex;
+        margin-bottom: 20px;
+        border-bottom: 1px solid #ccc;
+      }
+      .tab {
+        padding: 8px 15px;
+        cursor: pointer;
+        border: none;
+        background: none;
+        color: #666;
+        transition: all 0.2s ease-in-out;
+      }
+      .tab:hover {
+        color: #0060df;
+      }
+      .tab.active {
+        color: #0060df;
+        border-bottom: 2px solid #0060df;
+      }
+      .tab-content {
+        display: none;
+      }
+      .tab-content.active {
+        display: block;
+      }
+      h1 {
+        color: #333;
+        font-size: 18px;
+        margin-bottom: 15px;
+      }
+      #summary,
+      #followupResponse {
+        white-space: pre-wrap;
+        line-height: 1.4;
+        margin-top: 10px;
+      }
+      #loading {
+        color: #666;
+        font-style: italic;
+        display: none;
+      }
+      #error {
+        color: #ff0000;
+        display: none;
+        margin-top: 10px;
+      }
+      .api-key-form {
+        margin-bottom: 15px;
+      }
+      input[type='text'] {
+        width: 100%;
+        padding: 8px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+      button {
+        background: #0060df;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+      }
+      button:hover {
+        background: #0250bb;
+        color: white !important;
+        transform: translateY(-1px);
+      }
+      .followup-section {
+        margin-top: 20px;
+        padding-top: 15px;
+        border-top: 1px solid #eee;
+      }
+      #followupInput {
+        width: calc(100% - 100px);
+        margin-right: 10px;
+      }
+      .input-row {
+        display: flex;
+        align-items: center;
+        margin-top: 10px;
+      }
+      .settings-section {
+        margin-top: 10px;
+      }
+      .settings-section label {
+        display: block;
+        margin-bottom: 5px;
+        color: #666;
+      }
+      #currentApiKey {
+        word-break: break-all;
+        background: #f5f5f5;
+        padding: 8px;
+        border-radius: 4px;
+        margin-bottom: 10px;
+      }
+      .processing-status {
+        margin-top: 20px;
+        padding-top: 15px;
+        border-top: 1px solid #eee;
+        font-size: 12px;
+        color: #666;
+      }
+      .progress-bar {
+        background: #eee;
+        height: 4px;
+        border-radius: 2px;
+        margin: 5px 0;
+      }
+      .progress-bar-fill {
+        background: #0060df;
+        height: 100%;
+        width: 0;
+        border-radius: 2px;
+        transition: width 0.3s ease;
+      }
+      .status-details {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 3px;
+        font-size: 11px;
+      }
+      .settings-section {
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #eee;
+      }
+      .settings-section:last-child {
+        border-bottom: none;
+      }
+      .settings-section label {
+        display: block;
+        margin-bottom: 5px;
+        color: #666;
+        font-weight: 500;
+      }
+      .settings-select {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        background: white;
+        margin-top: 5px;
+      }
+      .checkbox-row {
+        display: flex;
+        align-items: center;
+        margin: 8px 0;
+      }
+      .checkbox-row label {
+        margin: 0 0 0 8px;
+        color: #333;
+      }
+      .settings-checkbox {
+        width: 16px;
+        height: 16px;
+      }
+      .secondary-button {
+        background: #e0e0e0;
+        color: #333;
+        margin-top: 10px;
+      }
+      .secondary-button:hover {
+        background: #d0d0d0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="tabs">
+      <button class="tab active" data-tab="main">Summary</button>
+      <button class="tab" data-tab="settings">Settings</button>
+      <button class="tab" data-tab="apikey">API Key</button>
+    </div>
+
+    <div id="mainTab" class="tab-content active">
+      <!-- <h1>Page Summarizer</h1> -->
+
+      <div id="apiKeySection" style="display: none">
+        <div class="api-key-form">
+          <input type="text" id="apiKey" placeholder="Enter your OpenAI API key" />
+          <button id="saveKey">Save API Key</button>
+        </div>
+      </div>
+
+      <div id="loading">Processing...</div>
+      <div id="error"></div>
+      <div id="summary"></div>
+
+      <div class="followup-section" id="followupSection" style="display: none">
+        <div class="input-row">
+          <input type="text" id="followupInput" placeholder="Ask a follow-up question..." />
+          <button id="askFollowup">Ask</button>
+        </div>
+        <div id="followupResponse"></div>
+      </div>
+
+      <div class="processing-status" id="processingStatus" style="display: none">
+        <div id="statusText">Processing page content...</div>
+        <div class="progress-bar">
+          <div class="progress-bar-fill" id="progressBar"></div>
+        </div>
+        <div class="status-details">
+          <span id="processedCount">0/0 sections</span>
+          <span id="estimatedTime"></span>
+        </div>
+      </div>
+    </div>
+
+    <div id="settingsTab" class="tab-content">
+      <h1>Settings</h1>
+
+      <div class="settings-section">
+        <label>Model:</label>
+        <select id="modelSelect" class="settings-select">
+          <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Faster, cheaper)</option>
+          <option value="gpt-4">GPT-4 (More accurate, expensive)</option>
+        </select>
+      </div>
+
+      <div class="settings-section">
+        <label>Max Tokens per Response:</label>
+        <select id="tokenSelect" class="settings-select">
+          <option value="150">150 (Shorter, quicker)</option>
+          <option value="250">250 (Balanced)</option>
+          <option value="500">500 (Detailed)</option>
+          <option value="1000">1000 (Very detailed)</option>
+        </select>
+      </div>
+
+      <div class="settings-section">
+        <label>Temperature:</label>
+        <select id="temperatureSelect" class="settings-select">
+          <option value="0">0.0 (Most focused)</option>
+          <option value="0.3">0.3 (Balanced)</option>
+          <option value="0.7">0.7 (More creative)</option>
+          <option value="1">1.0 (Most creative)</option>
+        </select>
+      </div>
+
+      <div class="settings-section">
+        <label>Processing:</label>
+        <div class="checkbox-row">
+          <input type="checkbox" id="autoProcess" class="settings-checkbox" />
+          <label for="autoProcess">Auto-process full page</label>
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="cacheResults" class="settings-checkbox" />
+          <label for="cacheResults">Cache results</label>
+        </div>
+        <button id="clearCache" class="secondary-button">Clear Cached Results</button>
+      </div>
+    </div>
+
+    <div id="apikeyTab" class="tab-content">
+      <h1>API Key Settings</h1>
+
+      <div class="settings-section">
+        <label>Current API Key:</label>
+        <div id="currentApiKey"></div>
+        <input type="text" id="newApiKey" placeholder="Enter new API key" />
+        <button id="updateApiKey">Update API Key</button>
+      </div>
+
+      <div class="settings-section">
+        <p style="color: #666; font-size: 12px">
+          Your API key is stored locally and is only used to make requests to OpenAI's API. You can get an API key from
+          <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI's website</a>.
+        </p>
+      </div>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

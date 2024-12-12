@@ -1,0 +1,14 @@
+{
+  "manifest_version": 2,
+  "name": "SummarizeGPT",
+  "version": "1.0",
+  "description": "Summarize the page you are on",
+  "permissions": ["activeTab", "storage"],
+  "browser_action": {
+    "default_title": "Summarize Page",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "48": "icons/wand-48.jpg"
+    }
+  }
+}
